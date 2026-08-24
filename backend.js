@@ -39,10 +39,13 @@ import {
   let syncInFlight = false;
   let remoteVersion = null;
   let pendingConflict = null;
+  let authMode = 'sign-in';
+  let recoveryMode = false;
   const trainingStore = createTrainingStore(state);
 
   const signedOut = document.querySelector('#auth-signed-out');
   const signedIn = document.querySelector('#auth-signed-in');
+  const recovery = document.querySelector('#auth-recovery');
   const authStatus = document.querySelector('#auth-status');
   const accountSummary = document.querySelector('#account-summary');
   const loginButton = document.querySelector('.login-button');
@@ -128,6 +131,21 @@ import {
     if (!authStatus) return;
     authStatus.textContent = message;
     authStatus.className = `auth-status ${kind}`.trim();
+  }
+
+  function setAuthMode(mode) {
+    authMode = mode === 'sign-up' ? 'sign-up' : 'sign-in';
+    document.querySelectorAll('[data-auth-mode]').forEach(button => {
+      button.setAttribute('aria-selected', String(button.dataset.authMode === authMode));
+    });
+    document.querySelectorAll('[data-sign-up-only]').forEach(element => {
+      element.hidden = authMode !== 'sign-up';
+    });
+    const heading = document.querySelector('#auth-heading');
+    if (heading) heading.textContent = authMode === 'sign-up' ? 'Create a Night Ops account' : 'Sign in to Night Ops';
+    document.querySelector('[data-auth-sign-in]')?.toggleAttribute('hidden', authMode !== 'sign-in');
+    document.querySelector('[data-auth-sign-up]')?.toggleAttribute('hidden', authMode !== 'sign-up');
+    document.querySelector('#auth-password')?.setAttribute('autocomplete', authMode === 'sign-up' ? 'new-password' : 'current-password');
   }
 
   function displayError(error, fallback) {
@@ -244,8 +262,9 @@ import {
 
   function renderAccount() {
     const authenticated = Boolean(session?.user && profile);
-    if (signedOut) signedOut.hidden = authenticated;
-    if (signedIn) signedIn.hidden = !authenticated;
+    if (signedOut) signedOut.hidden = authenticated || recoveryMode;
+    if (signedIn) signedIn.hidden = !authenticated || recoveryMode;
+    if (recovery) recovery.hidden = !recoveryMode;
     if (loginButton) loginButton.textContent = authenticated ? profile.display_name : 'Log in';
 
     state.profile = authenticated
@@ -264,6 +283,7 @@ import {
     }
 
     applyAuthGate(authenticated);
+    if (!authenticated) setAuthMode(authMode);
     setLeaderControls();
   }
 
@@ -429,6 +449,34 @@ import {
     else setStatus('Password-reset instructions were sent if that email has an account.', 'success');
   }
 
+  async function updateRecoveredPassword() {
+    const password = document.querySelector('#recovery-password')?.value || '';
+    const confirmation = document.querySelector('#recovery-confirm')?.value || '';
+    if (password.length < 8) return setStatus('Use a password of at least eight characters.', 'error');
+    if (password !== confirmation) return setStatus('The passwords do not match.', 'error');
+    const { error } = await client.auth.updateUser({ password });
+    if (error) return displayError(error, 'The password could not be updated.');
+    recoveryMode = false;
+    renderAccount();
+    setStatus('Your password was updated.', 'success');
+  }
+
+  function exportAccountData() {
+    if (!session?.user || !profile) return;
+    const data = {
+      exportedAt: new Date().toISOString(),
+      account: { email: session.user.email, displayName: profile.display_name, role: profile.role },
+      training: localSnapshot()
+    };
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `night-ops-data-${new Date().toISOString().slice(0, 10)}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+    setStatus('Your Night Ops data was downloaded.', 'success');
+  }
+
   async function saveDisplayName() {
     const displayName = document.querySelector('#profile-name')?.value.trim();
     if (!session?.user || !displayName) return setStatus('Enter a display name.', 'error');
@@ -516,20 +564,37 @@ import {
     const gateAction = event.target.closest('[data-gate-create], [data-gate-login]');
     if (!gateAction) return;
     event.preventDefault();
+    setAuthMode(gateAction.matches('[data-gate-create]') ? 'sign-up' : 'sign-in');
     route('settings');
     const target = gateAction.matches('[data-gate-create]') ? '#auth-display-name' : '#auth-email';
     setTimeout(() => document.querySelector(target)?.focus(), 0);
   });
 
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Enter') return;
+    if (event.target.matches('#auth-email, #auth-password, #auth-display-name')) {
+      event.preventDefault();
+      if (authMode === 'sign-up') signUp();
+      else signIn();
+    }
+    if (event.target.matches('#recovery-password, #recovery-confirm')) {
+      event.preventDefault();
+      updateRecoveredPassword();
+    }
+  });
+
   document.addEventListener('click', event => {
-    const action = event.target.closest('[data-auth-sign-in], [data-auth-sign-up], [data-auth-sign-out], [data-auth-reset], [data-save-account-profile], [data-sync-keep-local], [data-sync-keep-remote]');
+    const action = event.target.closest('[data-auth-mode], [data-auth-sign-in], [data-auth-sign-up], [data-auth-sign-out], [data-auth-reset], [data-auth-update-password], [data-save-account-profile], [data-export-account], [data-sync-keep-local], [data-sync-keep-remote]');
     if (!action) return;
     event.preventDefault();
+    if (action.matches('[data-auth-mode]')) setAuthMode(action.dataset.authMode);
     if (action.matches('[data-auth-sign-in]')) signIn();
     if (action.matches('[data-auth-sign-up]')) signUp();
     if (action.matches('[data-auth-sign-out]')) client.auth.signOut();
     if (action.matches('[data-auth-reset]')) resetPassword();
+    if (action.matches('[data-auth-update-password]')) updateRecoveredPassword();
     if (action.matches('[data-save-account-profile]')) saveDisplayName();
+    if (action.matches('[data-export-account]')) exportAccountData();
     if (action.matches('[data-sync-keep-local]')) resolveSyncConflict(true);
     if (action.matches('[data-sync-keep-remote]')) resolveSyncConflict(false);
   });
@@ -545,8 +610,9 @@ import {
     if (action.dataset.backendDelete) deleteSharedItem(action.dataset.backendDelete);
   }, true);
 
-  client.auth.onAuthStateChange((_event, nextSession) => {
+  client.auth.onAuthStateChange((event, nextSession) => {
     session = nextSession;
+    if (event === 'PASSWORD_RECOVERY') recoveryMode = true;
     setTimeout(loadAccount, 0);
   });
 

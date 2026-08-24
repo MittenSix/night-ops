@@ -88,21 +88,23 @@
           <div class="eyebrow">ACCOUNT</div><h1 class="page-title">Keep your progress <em>with you.</em></h1>
           <div class="profile-card auth-card">
             <div id="auth-signed-out">
-              <h2>Sign in to Night Ops</h2>
+              <div class="auth-mode-switch" role="tablist" aria-label="Account action"><button role="tab" aria-selected="true" data-auth-mode="sign-in">Log in</button><button role="tab" aria-selected="false" data-auth-mode="sign-up">Create account</button></div>
+              <h2 id="auth-heading">Sign in to Night Ops</h2>
               <p class="muted">Your account securely synchronizes progress between your devices. A parent or guardian should manage the email used for younger members.</p>
-              <label>Display name<input id="auth-display-name" autocomplete="name" maxlength="80" placeholder="First name or troop nickname" /></label>
+              <label data-sign-up-only hidden>Display name<input id="auth-display-name" autocomplete="name" maxlength="80" placeholder="First name or troop nickname" /></label>
               <label>Email<input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com" /></label>
               <label>Password<input id="auth-password" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters" /></label>
-              <div class="auth-actions"><button class="primary-button" data-auth-sign-in>Sign in <span>→</span></button><button class="outline-button" data-auth-sign-up>Create account</button></div>
+              <div class="auth-actions"><button class="primary-button" data-auth-sign-in>Sign in <span>→</span></button><button class="primary-button" data-auth-sign-up hidden>Create account <span>→</span></button></div>
               <button class="text-button" data-auth-reset>Forgot your password?</button>
             </div>
+            <div id="auth-recovery" hidden><h2>Choose a new password</h2><p class="muted">Use at least eight characters and do not reuse a password from another account.</p><label>New password<input id="recovery-password" type="password" autocomplete="new-password" minlength="8" /></label><label>Confirm new password<input id="recovery-confirm" type="password" autocomplete="new-password" minlength="8" /></label><div class="auth-actions"><button class="primary-button" data-auth-update-password>Save new password <span>→</span></button></div></div>
             <div id="auth-signed-in" hidden>
               <h2>Your Night Ops account</h2>
               <p id="account-summary" class="account-summary"></p>
               <label>Display name<input id="profile-name" maxlength="80" placeholder="First name or troop nickname" /></label>
               <p id="profile-status" class="muted"></p>
               <div id="sync-conflict" class="sync-conflict" hidden><strong>Progress changed on another device</strong><p>Your completed activities were combined safely, but your personal notes differ. Which notes should Night Ops keep?</p><div class="auth-actions"><button class="primary-button" data-sync-keep-local>Keep this device’s notes</button><button class="outline-button" data-sync-keep-remote>Keep saved notes</button></div></div>
-              <div class="auth-actions"><button class="primary-button" data-save-account-profile>Save name <span>→</span></button><button class="outline-button" data-auth-sign-out>Sign out</button></div>
+              <div class="auth-actions"><button class="primary-button" data-save-account-profile>Save name <span>→</span></button><button class="outline-button" data-export-account>Download my data</button><button class="outline-button" data-auth-sign-out>Sign out</button></div>
             </div>
             <p id="auth-status" class="auth-status" aria-live="polite"></p>
           </div>
