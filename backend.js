@@ -1,4 +1,10 @@
 import { createRouter } from './src/core/router.js';
+import {
+  createTrainingStore,
+  hasTrainingProgress,
+  mergeTrainingStates,
+  migrateTrainingState
+} from './src/core/store.js';
 
 (() => {
   'use strict';
@@ -30,12 +36,17 @@ import { createRouter } from './src/core/router.js';
   let profile = null;
   let sharedData = { announcements: [], events: [], questions: [] };
   let syncTimer = null;
+  let syncInFlight = false;
+  let remoteVersion = null;
+  let pendingConflict = null;
+  const trainingStore = createTrainingStore(state);
 
   const signedOut = document.querySelector('#auth-signed-out');
   const signedIn = document.querySelector('#auth-signed-in');
   const authStatus = document.querySelector('#auth-status');
   const accountSummary = document.querySelector('#account-summary');
   const loginButton = document.querySelector('.login-button');
+  const syncConflict = document.querySelector('#sync-conflict');
   const renderAppRoute = route;
   const previewContent = {
     training: {
@@ -134,27 +145,16 @@ import { createRouter } from './src/core/router.js';
   }
 
   function localSnapshot() {
-    return {
-      packing: state.packing || {},
-      practice: state.practice || {},
-      currentLesson: state.currentLesson || {},
-      reflections: state.reflections || {}
-    };
-  }
-
-  function hasProgress(value) {
-    if (!value || typeof value !== 'object') return false;
-    return ['packing', 'practice', 'currentLesson', 'reflections'].some(key =>
-      value[key] && Object.keys(value[key]).length > 0
-    );
+    return trainingStore.getState();
   }
 
   function applyRemoteState(remote) {
-    if (!remote || typeof remote !== 'object') return;
-    state.packing = remote.packing || {};
-    state.practice = remote.practice || {};
-    state.currentLesson = remote.currentLesson || {};
-    state.reflections = remote.reflections || {};
+    const migrated = migrateTrainingState(remote);
+    trainingStore.replace(migrated, 'remote-hydration');
+    state.packing = migrated.packing;
+    state.practice = migrated.practice;
+    state.currentLesson = migrated.currentLesson;
+    state.reflections = migrated.reflections;
     localStorage.setItem('nightOpsState', JSON.stringify(state));
     refresh();
     if (location.hash === '#skill') {
@@ -164,11 +164,49 @@ import { createRouter } from './src/core/router.js';
   }
 
   async function syncTrainingNow() {
-    if (!session?.user) return;
-    const { error } = await client
+    if (!session?.user || remoteVersion === null || syncInFlight || pendingConflict) return;
+    syncInFlight = true;
+    const nextVersion = remoteVersion + 1;
+    const { data, error } = await client
       .from('training_state')
-      .upsert({ user_id: session.user.id, state: localSnapshot() }, { onConflict: 'user_id' });
-    if (error) displayError(error, 'Progress could not be synchronized.');
+      .update({ state: localSnapshot(), version: nextVersion })
+      .eq('user_id', session.user.id)
+      .eq('version', remoteVersion)
+      .select('version')
+      .maybeSingle();
+
+    if (error) {
+      syncInFlight = false;
+      return displayError(error, 'Progress could not be synchronized.');
+    }
+
+    if (data) {
+      remoteVersion = data.version;
+      syncInFlight = false;
+      setStatus('Progress saved.', 'success');
+      return;
+    }
+
+    const { data: latest, error: latestError } = await client
+      .from('training_state')
+      .select('state,version')
+      .eq('user_id', session.user.id)
+      .single();
+    syncInFlight = false;
+    if (latestError) return displayError(latestError, 'Newer progress could not be loaded.');
+
+    remoteVersion = latest.version;
+    const local = localSnapshot();
+    const merged = mergeTrainingStates(local, latest.state);
+    if (merged.conflicts.length) {
+      pendingConflict = { local, remote: migrateTrainingState(latest.state), merged: merged.state, conflicts: merged.conflicts };
+      if (syncConflict) syncConflict.hidden = false;
+      setStatus('Your notes changed on another device. Choose which version to keep.', 'error');
+      return;
+    }
+
+    applyRemoteState(merged.state);
+    scheduleTrainingSync();
   }
 
   function scheduleTrainingSync() {
@@ -180,6 +218,7 @@ import { createRouter } from './src/core/router.js';
   const saveLocally = save;
   save = function saveWithAccountSync() {
     saveLocally();
+    trainingStore.replace(state, 'legacy-save');
     scheduleTrainingSync();
   };
 
@@ -315,6 +354,9 @@ import { createRouter } from './src/core/router.js';
   async function loadAccount() {
     if (!session?.user) {
       profile = null;
+      remoteVersion = null;
+      pendingConflict = null;
+      if (syncConflict) syncConflict.hidden = true;
       renderAccount();
       renderSharedData();
       return;
@@ -322,7 +364,7 @@ import { createRouter } from './src/core/router.js';
 
     const [{ data: profileData, error: profileError }, { data: trainingData, error: trainingError }] = await Promise.all([
       client.from('profiles').select('id,display_name,role').eq('id', session.user.id).single(),
-      client.from('training_state').select('state').eq('user_id', session.user.id).single()
+      client.from('training_state').select('state,version').eq('user_id', session.user.id).single()
     ]);
 
     if (profileError || trainingError) {
@@ -333,14 +375,24 @@ import { createRouter } from './src/core/router.js';
     }
 
     profile = profileData;
+    remoteVersion = trainingData.version;
     const remote = trainingData?.state || {};
     const local = localSnapshot();
-    if (!hasProgress(remote) && hasProgress(local)) await syncTrainingNow();
-    else applyRemoteState(remote);
+    if (!hasTrainingProgress(remote) && hasTrainingProgress(local)) await syncTrainingNow();
+    else {
+      const merged = mergeTrainingStates(local, remote);
+      if (merged.conflicts.length) {
+        pendingConflict = { local, remote: migrateTrainingState(remote), merged: merged.state, conflicts: merged.conflicts };
+        if (syncConflict) syncConflict.hidden = false;
+      } else {
+        applyRemoteState(merged.state);
+        if (JSON.stringify(merged.state) !== JSON.stringify(migrateTrainingState(remote))) scheduleTrainingSync();
+      }
+    }
 
     renderAccount();
     await loadSharedData();
-    setStatus('Your progress is synchronized.', 'success');
+    if (!pendingConflict) setStatus('Your progress is synchronized.', 'success');
   }
 
   async function signIn() {
@@ -390,6 +442,20 @@ import { createRouter } from './src/core/router.js';
     profile = data;
     renderAccount();
     setStatus('Display name saved.', 'success');
+  }
+
+  function resolveSyncConflict(preferLocal) {
+    if (!pendingConflict) return;
+    const resolved = structuredClone(pendingConflict.merged);
+    for (const conflict of pendingConflict.conflicts) {
+      const key = conflict.field.replace('reflections.', '');
+      resolved.reflections[key] = preferLocal ? conflict.local : conflict.remote;
+    }
+    pendingConflict = null;
+    if (syncConflict) syncConflict.hidden = true;
+    applyRemoteState(resolved);
+    setStatus(preferLocal ? 'This device’s notes were kept.' : 'The saved notes were kept.', 'success');
+    scheduleTrainingSync();
   }
 
   async function addAnnouncement() {
@@ -456,7 +522,7 @@ import { createRouter } from './src/core/router.js';
   });
 
   document.addEventListener('click', event => {
-    const action = event.target.closest('[data-auth-sign-in], [data-auth-sign-up], [data-auth-sign-out], [data-auth-reset], [data-save-account-profile]');
+    const action = event.target.closest('[data-auth-sign-in], [data-auth-sign-up], [data-auth-sign-out], [data-auth-reset], [data-save-account-profile], [data-sync-keep-local], [data-sync-keep-remote]');
     if (!action) return;
     event.preventDefault();
     if (action.matches('[data-auth-sign-in]')) signIn();
@@ -464,6 +530,8 @@ import { createRouter } from './src/core/router.js';
     if (action.matches('[data-auth-sign-out]')) client.auth.signOut();
     if (action.matches('[data-auth-reset]')) resetPassword();
     if (action.matches('[data-save-account-profile]')) saveDisplayName();
+    if (action.matches('[data-sync-keep-local]')) resolveSyncConflict(true);
+    if (action.matches('[data-sync-keep-remote]')) resolveSyncConflict(false);
   });
 
   document.addEventListener('click', event => {

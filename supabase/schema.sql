@@ -15,8 +15,11 @@ create table if not exists public.profiles (
 create table if not exists public.training_state (
   user_id uuid primary key references auth.users(id) on delete cascade,
   state jsonb not null default '{"packing":{},"practice":{},"currentLesson":{},"reflections":{}}'::jsonb,
+  version bigint not null default 1 check (version > 0),
   updated_at timestamptz not null default now()
 );
+
+alter table public.training_state add column if not exists version bigint not null default 1;
 
 create table if not exists public.announcements (
   id uuid primary key default gen_random_uuid(),
