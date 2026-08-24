@@ -77,11 +77,35 @@
         </section>
 
         <section id="about" class="page simple-page"><div class="eyebrow">THE MISSION</div><h1 class="page-title">Adventure begins with <em>preparation.</em></h1><p class="lede">Night Ops is an overnight, team-based outdoor challenge. Patrols practice navigation, communication, first aid, fire safety, teamwork, and outdoor skills so they can solve challenges calmly after dark.</p><p class="lede">Event times and exact competitions are set by each local Night Ops event, so check your troop’s current event packet. American Heritage Girls is a Christ-centered program that helps girls grow in faith, service, leadership, and a love for God while learning practical outdoor skills.</p><div class="quote">“Be prepared for the moments you can’t plan for.”</div></section>
-        <section id="leader" class="page simple-page"><div class="eyebrow">NIGHT OPS LEADS</div><h1 class="page-title">Night Ops <em>schedule.</em></h1><p class="lede">Add the next troop practices below. This local prototype saves on this device only.</p><div class="upcoming-heading"><h2>Upcoming practices</h2><span class="muted">Date · time · location</span></div><div id="leader-schedule" class="leader-schedule"></div><div class="leader-add"><input id="leader-date" type="date" /><input id="leader-time" type="time" /><input id="leader-address" placeholder="Practice address or location" /><input id="leader-training" placeholder="Practice name" /><button class="primary-button" data-add-training>Add <span>+</span></button></div><section class="lead-board"><h2>Announcements from Night Ops leads</h2><div id="announcement-list"></div><textarea id="lead-announcement" placeholder="Write an announcement for the troop."></textarea><button class="primary-button" data-add-announcement>Post announcement <span>→</span></button></section><section class="lead-board question-board"><h2>Questions for the leads</h2><div id="question-list"></div><textarea id="troop-question" placeholder="Ask a question for the next practice."></textarea><button class="outline-button" data-add-question>Ask a question <span>→</span></button></section></section>
-        <section id="settings" class="page simple-page"><div class="eyebrow">SETTINGS</div><h1 class="page-title">Make it <em>yours.</em></h1><div class="profile-card"><h2>Your profile</h2><label>Name<input id="profile-name" placeholder="Your first name" /></label><label>Role<select id="profile-role"><option value="member">Troop member</option><option value="lead">Night Ops lead</option></select></label><button class="primary-button" data-save-profile>Save profile <span>→</span></button><p id="profile-status" class="muted"></p></div><div class="setting-row"><div><h2>Daily practice reminder</h2><p>Get a browser nudge to practice one small skill each day.</p></div><button class="toggle" aria-label="Toggle daily reminder" aria-pressed="true"></button></div><button class="outline-button" data-enable-notifications>Enable browser reminders <span>→</span></button><p id="notification-status" class="muted"></p></section>
+        <section id="leader" class="page simple-page"><div class="eyebrow">NIGHT OPS LEADS</div><h1 class="page-title">Night Ops <em>schedule.</em></h1><p class="lede">Sign in to see troop practices, announcements, and questions. Only approved Night Ops leads can publish schedule details or announcements.</p><div class="upcoming-heading"><h2>Upcoming practices</h2><span class="muted">Date · time · location</span></div><div id="leader-schedule" class="leader-schedule"></div><div class="leader-add"><input id="leader-date" type="date" /><input id="leader-time" type="time" /><input id="leader-address" placeholder="Practice address or location" /><input id="leader-training" placeholder="Practice name" /><button class="primary-button" data-add-training>Add <span>+</span></button></div><section class="lead-board"><h2>Announcements from Night Ops leads</h2><div id="announcement-list"></div><textarea id="lead-announcement" placeholder="Write an announcement for the troop."></textarea><button class="primary-button" data-add-announcement>Post announcement <span>→</span></button></section><section class="lead-board question-board"><h2>Questions for the leads</h2><div id="question-list"></div><textarea id="troop-question" placeholder="Ask a question for the next practice."></textarea><button class="outline-button" data-add-question>Ask a question <span>→</span></button></section></section>
+        <section id="settings" class="page simple-page">
+          <div class="eyebrow">ACCOUNT</div><h1 class="page-title">Keep your progress <em>with you.</em></h1>
+          <div class="profile-card auth-card">
+            <div id="auth-signed-out">
+              <h2>Sign in to Night Ops</h2>
+              <p class="muted">Your account securely synchronizes progress between your devices. A parent or guardian should manage the email used for younger members.</p>
+              <label>Display name<input id="auth-display-name" autocomplete="name" maxlength="80" placeholder="First name or troop nickname" /></label>
+              <label>Email<input id="auth-email" type="email" autocomplete="email" placeholder="you@example.com" /></label>
+              <label>Password<input id="auth-password" type="password" autocomplete="current-password" minlength="8" placeholder="At least 8 characters" /></label>
+              <div class="auth-actions"><button class="primary-button" data-auth-sign-in>Sign in <span>→</span></button><button class="outline-button" data-auth-sign-up>Create account</button></div>
+              <button class="text-button" data-auth-reset>Forgot your password?</button>
+            </div>
+            <div id="auth-signed-in" hidden>
+              <h2>Your Night Ops account</h2>
+              <p id="account-summary" class="account-summary"></p>
+              <label>Display name<input id="profile-name" maxlength="80" placeholder="First name or troop nickname" /></label>
+              <p id="profile-status" class="muted"></p>
+              <div class="auth-actions"><button class="primary-button" data-save-account-profile>Save name <span>→</span></button><button class="outline-button" data-auth-sign-out>Sign out</button></div>
+            </div>
+            <p id="auth-status" class="auth-status" aria-live="polite"></p>
+          </div>
+          <div class="setting-row"><div><h2>Daily practice reminder</h2><p>Get a browser nudge to practice one small skill each day.</p></div><button class="toggle" aria-label="Toggle daily reminder" aria-pressed="true"></button></div><button class="outline-button" data-enable-notifications>Enable browser reminders <span>→</span></button><p id="notification-status" class="muted"></p>
+        </section>
       </main>
     </div>
     <script src="app.js"></script>
     <script src="improvements.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="backend.js"></script>
   </body>
 </html>
