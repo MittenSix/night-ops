@@ -16,7 +16,8 @@
       .field-photo{margin:0;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center}.field-photo img{width:100%;height:285px;object-fit:contain;display:block;background:#fff}.field-photo:has(img[src*="diagonal-lashing"]){overflow:hidden}.field-photo img[src*="diagonal-lashing"]{transform:scale(1.12)}.field-photo figcaption{font:500 9px "DM Mono";line-height:1.45;letter-spacing:.05em;color:var(--muted);padding-top:10px}.kicker,.journey-stop,.back-button{font-family:Fraunces,Georgia,serif!important;letter-spacing:.02em!important}.journey-stop{font-size:13px!important;text-transform:capitalize!important}.back-button{font-size:16px!important}
     </style>
   </head>
-  <body>
+  <body class="auth-pending">
+    <div class="auth-loading" role="status" aria-live="polite"><span class="brand-mark">N</span><p>Checking your Night Ops account…</p></div>
     <div class="app-shell">
       <aside class="sidebar" aria-label="Main navigation">
         <div class="menu-top"><a class="brand" href="#home" data-route="home"><span class="brand-mark">N</span><span>NIGHT<br />OPS</span></a><button class="menu-button close-menu" aria-label="Close navigation">×</button></div>
@@ -99,7 +100,7 @@
             </div>
             <p id="auth-status" class="auth-status" aria-live="polite"></p>
           </div>
-          <div class="setting-row"><div><h2>Daily practice reminder</h2><p>Get a browser nudge to practice one small skill each day.</p></div><button class="toggle" aria-label="Toggle daily reminder" aria-pressed="true"></button></div><button class="outline-button" data-enable-notifications>Enable browser reminders <span>→</span></button><p id="notification-status" class="muted"></p>
+          <div class="member-settings"><div class="setting-row"><div><h2>Daily practice reminder</h2><p>Get a browser nudge to practice one small skill each day.</p></div><button class="toggle" aria-label="Toggle daily reminder" aria-pressed="true"></button></div><button class="outline-button" data-enable-notifications>Enable browser reminders <span>→</span></button><p id="notification-status" class="muted"></p></div>
         </section>
       </main>
     </div>

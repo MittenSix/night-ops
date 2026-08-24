@@ -7,6 +7,12 @@
 
   if (!window.supabase?.createClient) {
     console.error('Night Ops account service did not load.');
+    document.body.classList.remove('auth-pending');
+    document.body.classList.add('auth-signed-out');
+    history.replaceState(null, '', '#settings');
+    document.querySelectorAll('.page').forEach(page => page.classList.toggle('active', page.id === 'settings'));
+    const unavailable = document.querySelector('#auth-status');
+    if (unavailable) unavailable.textContent = 'Account service is temporarily unavailable. Please try again shortly.';
     return;
   }
 
@@ -22,12 +28,51 @@
   let profile = null;
   let sharedData = { announcements: [], events: [], questions: [] };
   let syncTimer = null;
+  let requestedRoute = (() => {
+    const initialRoute = location.hash.slice(1) || 'home';
+    return initialRoute === 'settings' ? 'home' : initialRoute;
+  })();
 
   const signedOut = document.querySelector('#auth-signed-out');
   const signedIn = document.querySelector('#auth-signed-in');
   const authStatus = document.querySelector('#auth-status');
   const accountSummary = document.querySelector('#account-summary');
   const loginButton = document.querySelector('.login-button');
+  const routeApp = route;
+
+  function showRoute(name) {
+    const destination = document.getElementById(name) ? name : 'home';
+    history.replaceState(null, '', `#${destination}`);
+    routeApp(destination);
+  }
+
+  route = function routeWithAccountGate(name) {
+    if (!session?.user || !profile) {
+      if (name && name !== 'settings') requestedRoute = name;
+      showRoute('settings');
+      return;
+    }
+    routeApp(name);
+  };
+
+  function applyAuthGate(authenticated) {
+    const wasAuthenticated = document.body.classList.contains('auth-signed-in');
+    document.body.classList.remove('auth-pending', 'auth-signed-in', 'auth-signed-out');
+    document.body.classList.add(authenticated ? 'auth-signed-in' : 'auth-signed-out');
+
+    if (!authenticated) {
+      const currentRoute = location.hash.slice(1) || 'home';
+      if (currentRoute !== 'settings') requestedRoute = currentRoute;
+      showRoute('settings');
+      return;
+    }
+
+    if (!wasAuthenticated) {
+      const destination = requestedRoute || 'home';
+      requestedRoute = null;
+      showRoute(destination);
+    }
+  }
 
   function setStatus(message, kind = '') {
     if (!authStatus) return;
@@ -140,6 +185,7 @@
         : '';
     }
 
+    applyAuthGate(authenticated);
     setLeaderControls();
   }
 
@@ -242,6 +288,8 @@
 
     if (profileError || trainingError) {
       displayError(profileError || trainingError, 'Your account could not be loaded.');
+      profile = null;
+      renderAccount();
       return;
     }
 
@@ -387,11 +435,14 @@
   });
 
   state.profile = { name: '', role: 'member' };
-  renderAccount();
   renderSharedData();
 
   client.auth.getSession().then(({ data, error }) => {
-    if (error) return displayError(error, 'Account session could not be checked.');
+    if (error) {
+      session = null;
+      renderAccount();
+      return displayError(error, 'Account session could not be checked.');
+    }
     session = data.session;
     loadAccount();
   });
