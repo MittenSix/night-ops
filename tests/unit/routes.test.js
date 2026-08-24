@@ -35,4 +35,5 @@ test('defines stable page titles and history actions', () => {
   assert.equal(historyAction('home', 'training'), 'push');
   assert.equal(historyAction('home', 'training', true), 'replace');
   assert.equal(historyAction('home', 'home'), 'none');
+  assert.equal(historyAction('#does-not-exist', 'home', true), 'replace');
 });

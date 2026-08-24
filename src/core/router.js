@@ -5,7 +5,9 @@ export function routeFromLocation(location) {
 }
 
 export function historyAction(currentRoute, nextRoute, replace = false) {
-  if (normalizeRoute(currentRoute) === normalizeRoute(nextRoute)) return 'none';
+  const current = String(currentRoute || '').replace(/^#\/?/, '').split(/[?&]/, 1)[0];
+  const next = normalizeRoute(nextRoute);
+  if (current === next) return 'none';
   return replace ? 'replace' : 'push';
 }
 
@@ -19,7 +21,7 @@ export function createRouter({
   let started = false;
 
   function commitUrl(route, replace) {
-    const action = historyAction(routeFromLocation(window.location), route, replace);
+    const action = historyAction(window.location.hash, route, replace);
     if (action === 'none') return;
     window.history[action === 'replace' ? 'replaceState' : 'pushState'](null, '', `#${route}`);
   }
