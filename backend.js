@@ -1,3 +1,5 @@
+import { createRouter } from './src/core/router.js';
+
 (() => {
   'use strict';
 
@@ -28,18 +30,13 @@
   let profile = null;
   let sharedData = { announcements: [], events: [], questions: [] };
   let syncTimer = null;
-  const publicRoutes = new Set(['home', 'about', 'settings']);
-  let requestedRoute = (() => {
-    const initialRoute = location.hash.slice(1) || 'home';
-    return publicRoutes.has(initialRoute) ? null : initialRoute;
-  })();
 
   const signedOut = document.querySelector('#auth-signed-out');
   const signedIn = document.querySelector('#auth-signed-in');
   const authStatus = document.querySelector('#auth-status');
   const accountSummary = document.querySelector('#account-summary');
   const loginButton = document.querySelector('.login-button');
-  const routeApp = route;
+  const renderAppRoute = route;
   const previewContent = {
     training: {
       eyebrow: 'TRAINING LIBRARY',
@@ -75,44 +72,33 @@
     }
   };
 
-  function updateHistory(destination, replace = false) {
-    if (location.hash === `#${destination}`) return;
-    history[replace ? 'replaceState' : 'pushState'](null, '', `#${destination}`);
-  }
-
-  function showRoute(name, replace = false) {
-    const destination = document.getElementById(name) ? name : 'home';
-    updateHistory(destination, replace);
-    routeApp(destination);
-  }
-
-  function showPreview(name, replace = false) {
-    const section = name === 'skill' ? 'training' : name;
+  function renderPreview(section) {
     const preview = previewContent[section] || previewContent.training;
     const container = document.querySelector('#access-preview-content');
     if (container) {
       container.innerHTML = `<div class="access-hero"><div class="access-copy"><div class="eyebrow">${preview.eyebrow}</div><h1>${preview.title}</h1><p class="lede">${preview.lede}</p></div><aside class="access-panel"><div class="eyebrow">MEMBERS ONLY</div><h2>${preview.heading}</h2><p>${preview.detail}</p><ul class="access-features">${preview.features.map(feature => `<li>${feature}</li>`).join('')}</ul><div class="auth-actions"><button class="primary-button" data-gate-create>Create account <span>→</span></button><button class="outline-button" data-gate-login>Log in</button></div></aside></div>`;
     }
-    updateHistory(section, replace);
-    routeApp('access');
+    renderAppRoute('access');
     document.querySelectorAll('.nav-link').forEach(link => link.classList.toggle('active', link.dataset.route === section));
   }
 
-  route = function routeWithAccountGate(name) {
-    if (!session?.user || !profile) {
-      if (name === 'home' || name === 'about') {
-        requestedRoute = null;
-        showRoute(name);
-      } else if (name === 'settings') {
-        showRoute('settings');
-      } else {
-        requestedRoute = name === 'skill' ? 'training' : name;
-        showPreview(name);
-      }
-      return;
+  const router = createRouter({
+    window,
+    isAuthenticated: () => Boolean(session?.user && profile),
+    render: resolved => {
+      if (resolved.preview) renderPreview(resolved.requested);
+      else renderAppRoute(resolved.rendered);
+    },
+    onResolved: resolved => {
+      const heading = document.querySelector(`#${resolved.rendered} h1, #${resolved.rendered} [role="status"]`);
+      if (heading && !heading.hasAttribute('tabindex')) heading.setAttribute('tabindex', '-1');
+      if (heading) heading.focus({ preventScroll: true });
+      const routeStatus = document.querySelector('#route-status');
+      if (routeStatus) routeStatus.textContent = `${document.title} loaded`;
     }
-    routeApp(name === 'access' ? (requestedRoute || 'home') : name);
-  };
+  });
+
+  route = name => router.navigate(name);
 
   function applyAuthGate(authenticated) {
     const wasAuthenticated = document.body.classList.contains('auth-signed-in');
@@ -120,22 +106,11 @@
     document.body.classList.add(authenticated ? 'auth-signed-in' : 'auth-signed-out');
 
     if (!authenticated) {
-      const currentRoute = location.hash.slice(1) || 'home';
-      if (currentRoute === 'home' || currentRoute === 'about' || currentRoute === 'settings') {
-        if (currentRoute !== 'settings') requestedRoute = null;
-        showRoute(currentRoute);
-      } else {
-        requestedRoute = currentRoute === 'skill' ? 'training' : currentRoute;
-        showPreview(currentRoute);
-      }
+      router.authChanged(false);
       return;
     }
 
-    if (!wasAuthenticated) {
-      const destination = requestedRoute || 'home';
-      requestedRoute = null;
-      showRoute(destination, true);
-    }
+    if (!wasAuthenticated) router.authChanged(true);
   }
 
   function setStatus(message, kind = '') {
@@ -509,6 +484,7 @@
 
   state.profile = { name: '', role: 'member' };
   renderSharedData();
+  router.start();
 
   client.auth.getSession().then(({ data, error }) => {
     if (error) {

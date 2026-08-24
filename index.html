@@ -17,6 +17,8 @@
     </style>
   </head>
   <body class="auth-pending">
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <div id="route-status" class="sr-only" role="status" aria-live="polite"></div>
     <div class="auth-loading" role="status" aria-live="polite"><span class="brand-mark">N</span><p>Checking your Night Ops account…</p></div>
     <div class="app-shell">
       <aside class="sidebar" aria-label="Main navigation">
@@ -36,7 +38,7 @@
 
       <header class="mobile-header"><a class="brand" href="#home" data-route="home"><span class="brand-mark">N</span><span>NIGHT OPS</span></a><div class="header-actions"><button class="login-button" data-go="settings">Log in</button><button class="menu-button" aria-label="Open navigation">☰</button></div></header>
 
-      <main>
+      <main id="main-content">
         <section id="home" class="page active">
           <div class="landing-content">
             <div class="landing-mark" aria-hidden="true">N</div>
@@ -110,6 +112,6 @@
     <script src="app.js"></script>
     <script src="improvements.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="backend.js?v=20260824-history-fix"></script>
+    <script type="module" src="backend.js?v=20260824-router-core"></script>
   </body>
 </html>
