@@ -28,9 +28,10 @@
   let profile = null;
   let sharedData = { announcements: [], events: [], questions: [] };
   let syncTimer = null;
+  const publicRoutes = new Set(['home', 'about', 'settings']);
   let requestedRoute = (() => {
     const initialRoute = location.hash.slice(1) || 'home';
-    return initialRoute === 'settings' ? 'home' : initialRoute;
+    return publicRoutes.has(initialRoute) ? null : initialRoute;
   })();
 
   const signedOut = document.querySelector('#auth-signed-out');
@@ -39,6 +40,40 @@
   const accountSummary = document.querySelector('#account-summary');
   const loginButton = document.querySelector('.login-button');
   const routeApp = route;
+  const previewContent = {
+    training: {
+      eyebrow: 'TRAINING LIBRARY',
+      title: 'Build your <em>field skills.</em>',
+      lede: 'Explore guided practice paths for ropes, first aid, navigation, fire safety, observation, teamwork, and Morse code.',
+      heading: 'Learn a little. Practice often.',
+      detail: 'An account unlocks step-by-step lessons and keeps every completed practice round with you.',
+      features: ['Guided skill paths', 'Safe practice instructions', 'Progress saved across devices']
+    },
+    packing: {
+      eyebrow: 'NIGHT OPS PREP',
+      title: 'Pack with <em>confidence.</em>',
+      lede: 'Use a practical readiness checklist alongside your troop’s official event list so important field essentials are not forgotten.',
+      heading: 'Make every bag check count.',
+      detail: 'Sign in to use the interactive packing list and keep your readiness status synchronized.',
+      features: ['Interactive bag checklist', 'Night Ops readiness status', 'Saved packing progress']
+    },
+    progress: {
+      eyebrow: 'MISSION STATUS',
+      title: 'See your progress <em>take shape.</em>',
+      lede: 'Track practice across every field skill, notice what needs attention, and set a clear goal for the next troop meeting.',
+      heading: 'Your personal mission log.',
+      detail: 'Create an account to save completed rounds, packing progress, reflections, and next-practice goals.',
+      features: ['Skill-by-skill progress', 'Personal practice notes', 'Private synchronized records']
+    },
+    leader: {
+      eyebrow: 'NIGHT OPS TEAM',
+      title: 'Stay connected <em>and prepared.</em>',
+      lede: 'Members can see upcoming practices, read announcements, and bring questions to their Night Ops leads.',
+      heading: 'One place for troop updates.',
+      detail: 'Sign in to view private troop information. Approved leads can publish schedules and announcements.',
+      features: ['Upcoming practice details', 'Lead announcements', 'Questions for the team']
+    }
+  };
 
   function showRoute(name) {
     const destination = document.getElementById(name) ? name : 'home';
@@ -46,13 +81,32 @@
     routeApp(destination);
   }
 
+  function showPreview(name) {
+    const section = name === 'skill' ? 'training' : name;
+    const preview = previewContent[section] || previewContent.training;
+    const container = document.querySelector('#access-preview-content');
+    if (container) {
+      container.innerHTML = `<div class="access-hero"><div class="access-copy"><div class="eyebrow">${preview.eyebrow}</div><h1>${preview.title}</h1><p class="lede">${preview.lede}</p></div><aside class="access-panel"><div class="eyebrow">MEMBERS ONLY</div><h2>${preview.heading}</h2><p>${preview.detail}</p><ul class="access-features">${preview.features.map(feature => `<li>${feature}</li>`).join('')}</ul><div class="auth-actions"><button class="primary-button" data-gate-create>Create account <span>→</span></button><button class="outline-button" data-gate-login>Log in</button></div></aside></div>`;
+    }
+    history.replaceState(null, '', `#${section}`);
+    routeApp('access');
+    document.querySelectorAll('.nav-link').forEach(link => link.classList.toggle('active', link.dataset.route === section));
+  }
+
   route = function routeWithAccountGate(name) {
     if (!session?.user || !profile) {
-      if (name && name !== 'settings') requestedRoute = name;
-      showRoute('settings');
+      if (name === 'home' || name === 'about') {
+        requestedRoute = null;
+        showRoute(name);
+      } else if (name === 'settings') {
+        showRoute('settings');
+      } else {
+        requestedRoute = name === 'skill' ? 'training' : name;
+        showPreview(name);
+      }
       return;
     }
-    routeApp(name);
+    routeApp(name === 'access' ? (requestedRoute || 'home') : name);
   };
 
   function applyAuthGate(authenticated) {
@@ -62,8 +116,13 @@
 
     if (!authenticated) {
       const currentRoute = location.hash.slice(1) || 'home';
-      if (currentRoute !== 'settings') requestedRoute = currentRoute;
-      showRoute('settings');
+      if (currentRoute === 'home' || currentRoute === 'about' || currentRoute === 'settings') {
+        if (currentRoute !== 'settings') requestedRoute = null;
+        showRoute(currentRoute);
+      } else {
+        requestedRoute = currentRoute === 'skill' ? 'training' : currentRoute;
+        showPreview(currentRoute);
+      }
       return;
     }
 
@@ -406,6 +465,15 @@
     if (error) return displayError(error, 'The item could not be deleted.');
     await loadSharedData();
   }
+
+  document.addEventListener('click', event => {
+    const gateAction = event.target.closest('[data-gate-create], [data-gate-login]');
+    if (!gateAction) return;
+    event.preventDefault();
+    route('settings');
+    const target = gateAction.matches('[data-gate-create]') ? '#auth-display-name' : '#auth-email';
+    setTimeout(() => document.querySelector(target)?.focus(), 0);
+  });
 
   document.addEventListener('click', event => {
     const action = event.target.closest('[data-auth-sign-in], [data-auth-sign-up], [data-auth-sign-out], [data-auth-reset], [data-save-account-profile]');

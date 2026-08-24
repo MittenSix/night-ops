@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="navigation.css?v=20260824-auth-gate" />
+    <link rel="stylesheet" href="navigation.css?v=20260824-public-preview" />
     <style>
       .menu-top{display:flex;justify-content:space-between;align-items:center}.close-menu{color:#fff}.landing-content{align-items:center;text-align:center}.landing-actions{grid-template-columns:repeat(3,1fr)}
       .celebration{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;background:#152927e8;color:#fff;text-align:center;animation:celebrate 3.2s ease forwards;pointer-events:none}.celebration div{font-size:48px;letter-spacing:18px;color:#f2bc4c}.celebration strong{font:72px Fraunces}.celebration span{font:500 13px "DM Mono";letter-spacing:.12em;text-transform:uppercase;color:#dce5dc}@keyframes celebrate{0%{opacity:0;transform:scale(.88)}12%,82%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.05)}}
@@ -30,7 +30,7 @@
         </nav>
         <div class="sidebar-foot">
           <a href="#about" class="nav-link" data-route="about"><span>i</span> About Night Ops</a>
-          <a href="#settings" class="nav-link" data-route="settings"><span>⚙</span> Settings</a>
+          <a href="#settings" class="nav-link" data-route="settings"><span>⚙</span> Account</a>
         </div>
       </aside>
 
@@ -79,6 +79,9 @@
 
         <section id="about" class="page simple-page"><div class="eyebrow">THE MISSION</div><h1 class="page-title">Adventure begins with <em>preparation.</em></h1><p class="lede">Night Ops is an overnight, team-based outdoor challenge. Patrols practice navigation, communication, first aid, fire safety, teamwork, and outdoor skills so they can solve challenges calmly after dark.</p><p class="lede">Event times and exact competitions are set by each local Night Ops event, so check your troop’s current event packet. American Heritage Girls is a Christ-centered program that helps girls grow in faith, service, leadership, and a love for God while learning practical outdoor skills.</p><div class="quote">“Be prepared for the moments you can’t plan for.”</div></section>
         <section id="leader" class="page simple-page"><div class="eyebrow">NIGHT OPS LEADS</div><h1 class="page-title">Night Ops <em>schedule.</em></h1><p class="lede">Sign in to see troop practices, announcements, and questions. Only approved Night Ops leads can publish schedule details or announcements.</p><div class="upcoming-heading"><h2>Upcoming practices</h2><span class="muted">Date · time · location</span></div><div id="leader-schedule" class="leader-schedule"></div><div class="leader-add"><input id="leader-date" type="date" /><input id="leader-time" type="time" /><input id="leader-address" placeholder="Practice address or location" /><input id="leader-training" placeholder="Practice name" /><button class="primary-button" data-add-training>Add <span>+</span></button></div><section class="lead-board"><h2>Announcements from Night Ops leads</h2><div id="announcement-list"></div><textarea id="lead-announcement" placeholder="Write an announcement for the troop."></textarea><button class="primary-button" data-add-announcement>Post announcement <span>→</span></button></section><section class="lead-board question-board"><h2>Questions for the leads</h2><div id="question-list"></div><textarea id="troop-question" placeholder="Ask a question for the next practice."></textarea><button class="outline-button" data-add-question>Ask a question <span>→</span></button></section></section>
+        <section id="access" class="page access-preview" aria-live="polite">
+          <div id="access-preview-content"></div>
+        </section>
         <section id="settings" class="page simple-page">
           <div class="eyebrow">ACCOUNT</div><h1 class="page-title">Keep your progress <em>with you.</em></h1>
           <div class="profile-card auth-card">
@@ -107,6 +110,6 @@
     <script src="app.js"></script>
     <script src="improvements.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="backend.js?v=20260824-auth-gate"></script>
+    <script src="backend.js?v=20260824-public-preview"></script>
   </body>
 </html>
