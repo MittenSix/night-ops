@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Night Ops Training</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="navigation.css" />
+    <style>
+      .menu-top{display:flex;justify-content:space-between;align-items:center}.close-menu{color:#fff}.landing-content{align-items:center;text-align:center}.landing-actions{grid-template-columns:repeat(3,1fr)}
+      .celebration{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;gap:10px;align-items:center;justify-content:center;background:#152927e8;color:#fff;text-align:center;animation:celebrate 3.2s ease forwards;pointer-events:none}.celebration div{font-size:48px;letter-spacing:18px;color:#f2bc4c}.celebration strong{font:72px Fraunces}.celebration span{font:500 13px "DM Mono";letter-spacing:.12em;text-transform:uppercase;color:#dce5dc}@keyframes celebrate{0%{opacity:0;transform:scale(.88)}12%,82%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(1.05)}}
+      .lesson-shell{margin-top:26px}.lesson-journey{display:flex;gap:8px;border-bottom:1px solid var(--line);padding:22px 0;overflow:auto}.journey-stop{border:0;background:none;color:var(--muted);font:500 10px "DM Mono";text-transform:uppercase;white-space:nowrap;display:flex;gap:8px;align-items:center;padding:0 13px 12px 0;cursor:pointer}.journey-stop span{display:grid;place-items:center;width:22px;height:22px;border:1px solid currentColor;border-radius:50%}.journey-stop.active{color:var(--coral);border-bottom:2px solid var(--coral)}.journey-stop.complete{color:var(--leaf)}.journey-stop:disabled{opacity:.45;cursor:not-allowed}.lesson-layout{display:grid;grid-template-columns:minmax(280px,.95fr) 1.05fr;gap:clamp(38px,7vw,100px);padding-top:55px}.lesson-art{min-height:335px;background:#e1eadf;display:grid;place-items:center;position:relative;padding:36px}.lesson-art svg{width:100%;max-width:300px;fill:none;stroke:var(--ink);stroke-width:7;stroke-linecap:round;stroke-linejoin:round}.lesson-art span{position:absolute;bottom:20px;left:20px;font:500 10px "DM Mono";letter-spacing:.13em;color:var(--leaf)}.lesson-layout h1{font-size:clamp(46px,5vw,70px);margin-bottom:18px}.how-to{padding:0;list-style:none;counter-reset:how;display:grid;gap:10px;margin:28px 0}.how-to li{counter-increment:how;display:flex;gap:12px;font-size:14px;line-height:1.45}.how-to li:before{content:counter(how);font:500 11px "DM Mono";display:grid;place-items:center;width:22px;height:22px;border-radius:50%;color:var(--coral);border:1px solid var(--coral);flex:none}.practice-box{border-top:1px solid var(--line);padding-top:21px;margin-top:26px}.practice-box strong{font:600 20px Fraunces}.practice-box p{font-size:13px;color:var(--muted);margin:5px 0 15px}.rounds{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:25px}.round{background:#fff;border:1px solid var(--ink);padding:10px 12px;font:600 12px Inter;cursor:pointer}.round.done{background:var(--leaf);border-color:var(--leaf);color:#fff}.next-lesson:disabled{cursor:not-allowed;opacity:.4;box-shadow:none}@media(max-width:800px){.lesson-layout{grid-template-columns:1fr;padding-top:35px}.lesson-art{min-height:230px}.lesson-journey{padding-top:12px}}
+      .field-photo{margin:0;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center}.field-photo img{width:100%;height:285px;object-fit:contain;display:block;background:#fff}.field-photo:has(img[src*="diagonal-lashing"]){overflow:hidden}.field-photo img[src*="diagonal-lashing"]{transform:scale(1.12)}.field-photo figcaption{font:500 9px "DM Mono";line-height:1.45;letter-spacing:.05em;color:var(--muted);padding-top:10px}.kicker,.journey-stop,.back-button{font-family:Fraunces,Georgia,serif!important;letter-spacing:.02em!important}.journey-stop{font-size:13px!important;text-transform:capitalize!important}.back-button{font-size:16px!important}
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Main navigation">
+        <div class="menu-top"><a class="brand" href="#home" data-route="home"><span class="brand-mark">N</span><span>NIGHT<br />OPS</span></a><button class="menu-button close-menu" aria-label="Close navigation">×</button></div>
+        <nav class="nav-links">
+          <a href="#home" class="nav-link active" data-route="home"><span>⌂</span> Home</a>
+          <a href="#training" class="nav-link" data-route="training"><span>◒</span> Training</a>
+          <a href="#packing" class="nav-link" data-route="packing"><span>□</span> Packing list</a>
+          <a href="#progress" class="nav-link" data-route="progress"><span>◔</span> My progress</a>
+          <a href="#leader" class="nav-link" data-route="leader"><span>★</span> Night Ops leads</a>
+        </nav>
+        <div class="sidebar-foot">
+          <a href="#about" class="nav-link" data-route="about"><span>i</span> About Night Ops</a>
+          <a href="#settings" class="nav-link" data-route="settings"><span>⚙</span> Settings</a>
+        </div>
+      </aside>
+
+      <header class="mobile-header"><a class="brand" href="#home" data-route="home"><span class="brand-mark">N</span><span>NIGHT OPS</span></a><div class="header-actions"><button class="login-button" data-go="settings">Log in</button><button class="menu-button" aria-label="Open navigation">☰</button></div></header>
+
+      <main>
+        <section id="home" class="page active">
+          <div class="landing-content">
+            <div class="landing-mark" aria-hidden="true">N</div>
+            <p class="kicker">OUTDOOR PREPAREDNESS</p>
+            <h1>Night Ops<br /><em>training.</em></h1>
+            <p class="landing-lede">Small skills. Build confidence.<br />Practice a little every day.</p>
+          </div>
+          <div class="landing-actions">
+            <button class="landing-button primary-button" data-go="training">Start training <span>→</span></button>
+            <button class="landing-button outline-button" data-go="leader">Team lead tools <span>→</span></button>
+            <button class="landing-button outline-button" data-go="progress">My progress <span>→</span></button>
+          </div>
+        </section>
+
+        <section id="training" class="page">
+          <div class="eyebrow">TRAINING LIBRARY</div><h1 class="page-title">Build your<br /><em>field skills.</em></h1><p class="lede">Choose an area to practice. Every completed step brings you closer to Night Ops ready.</p>
+          <section class="training-guide" aria-label="How to use training">
+            <div><span>01</span><strong>Learn the safe first step</strong><p>Read the short mission, then ask a leader when you are unsure.</p></div>
+            <div><span>02</span><strong>Practice with your patrol</strong><p>Skills stick when you try them together, slowly and safely.</p></div>
+            <div><span>03</span><strong>Bring a question</strong><p>Use your next practice to get help with the part that feels tricky.</p></div>
+          </section>
+          <div id="skill-grid" class="skill-grid"></div>
+        </section>
+
+        <section id="skill" class="page detail-page">
+          <button class="back-button" data-go="training">← Back to training</button>
+          <div id="skill-detail"></div>
+        </section>
+
+        <section id="packing" class="page">
+          <div class="eyebrow">NIGHT OPS PREP</div><div class="packing-heading"><div><h1 class="page-title">Bag Check.<br /><em>Get ready for Night Ops.</em></h1><p class="lede">Use your troop’s official event list first; this is a practice check for common field essentials.</p></div><div id="packing-count" class="packing-count"></div></div>
+          <div id="packing-list" class="packing-list"></div>
+          <div id="packed-message" class="packed-message" hidden>✦ You're packed and ready for Night Ops.</div>
+          <section class="leaderboard-card"><p class="kicker">FRIENDLY TROOP CHALLENGE</p><h2>Practice leaderboard</h2><p>Cheer on your friends. A troop leader can decide whether there is a prize.</p><div id="leaderboard-list"></div></section>
+        </section>
+
+        <section id="progress" class="page">
+          <div class="eyebrow">MISSION STATUS</div><h1 class="page-title">Ready for<br /><em>Night Ops?</em></h1><div class="progress-overview"><div class="big-ring"><span id="overall-percent">0%</span></div><div><h2 id="overall-title">Your training is underway.</h2><p id="overall-description">Complete skills and prep your pack to be ready for the field.</p><button class="primary-button" data-go="training">Keep training <span>→</span></button></div></div><div class="section-heading"><h2>Skill progress</h2><span class="muted">What to focus on next</span></div><div id="progress-list" class="progress-list"></div><section class="reflection-card"><h2>Your Night Ops notes</h2><label>What do you want to work on?<textarea data-reflection="focus" placeholder="Example: I want to remember map bearings."></textarea></label><label>What do you feel confident with?<textarea data-reflection="confident" placeholder="Example: I feel good about the Five Bs."></textarea></label><label>One goal for my next practice<textarea data-reflection="goal" placeholder="Example: Practice three new Morse letters."></textarea></label></section>
+        </section>
+
+        <section id="about" class="page simple-page"><div class="eyebrow">THE MISSION</div><h1 class="page-title">Adventure begins with <em>preparation.</em></h1><p class="lede">Night Ops is an overnight, team-based outdoor challenge. Patrols practice navigation, communication, first aid, fire safety, teamwork, and outdoor skills so they can solve challenges calmly after dark.</p><p class="lede">Event times and exact competitions are set by each local Night Ops event, so check your troop’s current event packet. American Heritage Girls is a Christ-centered program that helps girls grow in faith, service, leadership, and a love for God while learning practical outdoor skills.</p><div class="quote">“Be prepared for the moments you can’t plan for.”</div></section>
+        <section id="leader" class="page simple-page"><div class="eyebrow">NIGHT OPS LEADS</div><h1 class="page-title">Night Ops <em>schedule.</em></h1><p class="lede">Add the next troop practices below. This local prototype saves on this device only.</p><div class="upcoming-heading"><h2>Upcoming practices</h2><span class="muted">Date · time · location</span></div><div id="leader-schedule" class="leader-schedule"></div><div class="leader-add"><input id="leader-date" type="date" /><input id="leader-time" type="time" /><input id="leader-address" placeholder="Practice address or location" /><input id="leader-training" placeholder="Practice name" /><button class="primary-button" data-add-training>Add <span>+</span></button></div><section class="lead-board"><h2>Announcements from Night Ops leads</h2><div id="announcement-list"></div><textarea id="lead-announcement" placeholder="Write an announcement for the troop."></textarea><button class="primary-button" data-add-announcement>Post announcement <span>→</span></button></section><section class="lead-board question-board"><h2>Questions for the leads</h2><div id="question-list"></div><textarea id="troop-question" placeholder="Ask a question for the next practice."></textarea><button class="outline-button" data-add-question>Ask a question <span>→</span></button></section></section>
+        <section id="settings" class="page simple-page"><div class="eyebrow">SETTINGS</div><h1 class="page-title">Make it <em>yours.</em></h1><div class="profile-card"><h2>Your profile</h2><label>Name<input id="profile-name" placeholder="Your first name" /></label><label>Role<select id="profile-role"><option value="member">Troop member</option><option value="lead">Night Ops lead</option></select></label><button class="primary-button" data-save-profile>Save profile <span>→</span></button><p id="profile-status" class="muted"></p></div><div class="setting-row"><div><h2>Daily practice reminder</h2><p>Get a browser nudge to practice one small skill each day.</p></div><button class="toggle" aria-label="Toggle daily reminder" aria-pressed="true"></button></div><button class="outline-button" data-enable-notifications>Enable browser reminders <span>→</span></button><p id="notification-status" class="muted"></p></section>
+      </main>
+    </div>
+    <script src="app.js"></script>
+    <script src="improvements.js"></script>
+  </body>
+</html>
