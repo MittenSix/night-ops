@@ -75,20 +75,25 @@
     }
   };
 
-  function showRoute(name) {
+  function updateHistory(destination, replace = false) {
+    if (location.hash === `#${destination}`) return;
+    history[replace ? 'replaceState' : 'pushState'](null, '', `#${destination}`);
+  }
+
+  function showRoute(name, replace = false) {
     const destination = document.getElementById(name) ? name : 'home';
-    history.replaceState(null, '', `#${destination}`);
+    updateHistory(destination, replace);
     routeApp(destination);
   }
 
-  function showPreview(name) {
+  function showPreview(name, replace = false) {
     const section = name === 'skill' ? 'training' : name;
     const preview = previewContent[section] || previewContent.training;
     const container = document.querySelector('#access-preview-content');
     if (container) {
       container.innerHTML = `<div class="access-hero"><div class="access-copy"><div class="eyebrow">${preview.eyebrow}</div><h1>${preview.title}</h1><p class="lede">${preview.lede}</p></div><aside class="access-panel"><div class="eyebrow">MEMBERS ONLY</div><h2>${preview.heading}</h2><p>${preview.detail}</p><ul class="access-features">${preview.features.map(feature => `<li>${feature}</li>`).join('')}</ul><div class="auth-actions"><button class="primary-button" data-gate-create>Create account <span>→</span></button><button class="outline-button" data-gate-login>Log in</button></div></aside></div>`;
     }
-    history.replaceState(null, '', `#${section}`);
+    updateHistory(section, replace);
     routeApp('access');
     document.querySelectorAll('.nav-link').forEach(link => link.classList.toggle('active', link.dataset.route === section));
   }
@@ -129,7 +134,7 @@
     if (!wasAuthenticated) {
       const destination = requestedRoute || 'home';
       requestedRoute = null;
-      showRoute(destination);
+      showRoute(destination, true);
     }
   }
 
