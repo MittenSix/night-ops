@@ -30,12 +30,13 @@ test('unknown routes recover to the public home page', async ({ page }) => {
 
 test('account screen separates sign-in and account creation', async ({ page }) => {
   await page.goto('/#settings');
+  const signedOutAccount = page.locator('#auth-signed-out');
   await expect(page.getByRole('heading', { name: 'Sign in to Night Ops' })).toBeVisible();
-  await expect(page.getByLabel('Display name')).toBeHidden();
+  await expect(signedOutAccount.getByLabel('Display name')).toBeHidden();
 
   await page.getByRole('tab', { name: 'Create account' }).click();
   await expect(page.getByRole('heading', { name: 'Create a Night Ops account' })).toBeVisible();
-  await expect(page.getByLabel('Display name')).toBeVisible();
+  await expect(signedOutAccount.getByLabel('Display name')).toBeVisible();
   await expect(page.getByRole('button', { name: /Create account/ }).last()).toBeVisible();
 });
 
