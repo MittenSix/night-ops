@@ -33,7 +33,7 @@ Members can reset their password, download their data, update their display name
 
 ## Deployment
 
-Pushing `main` triggers GitHub Pages and the Quality workflow. The custom domain is declared in `CNAME`. Supabase schema and Edge Function changes are intentionally deployed separately so database mutations require an authenticated project owner.
+Pushing `main` runs the Quality workflow, builds the Vite production bundle, and deploys that tested bundle through GitHub Pages Actions. The custom domain is declared in `CNAME`. Supabase schema and Edge Function changes are intentionally deployed separately so database mutations require an authenticated project owner.
 
 Before a release, confirm:
 
