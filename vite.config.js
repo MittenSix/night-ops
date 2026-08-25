@@ -14,6 +14,8 @@ function copyLegacyAssets() {
         copyFile(resolve(root, 'app.js'), resolve(output, 'app.js')),
         copyFile(resolve(root, 'improvements.js'), resolve(output, 'improvements.js')),
         copyFile(resolve(root, 'CNAME'), resolve(output, 'CNAME')),
+        copyFile(resolve(root, 'manifest.webmanifest'), resolve(output, 'manifest.webmanifest')),
+        copyFile(resolve(root, 'sw.js'), resolve(output, 'sw.js')),
         cp(resolve(root, 'assets'), resolve(output, 'assets'), { recursive: true })
       ]);
     }

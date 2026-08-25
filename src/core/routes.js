@@ -6,6 +6,7 @@ export const ROUTES = Object.freeze({
   progress: { title: 'My progress · Night Ops', public: false, nav: 'My progress' },
   leader: { title: 'Night Ops team · Night Ops', public: false, nav: 'Night Ops leads' },
   about: { title: 'About · Night Ops', public: true, nav: 'About Night Ops' },
+  privacy: { title: 'Privacy · Night Ops', public: true, nav: 'Privacy' },
   settings: { title: 'Account · Night Ops', public: true, nav: 'Account' }
 });
 

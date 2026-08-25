@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Night Ops Training</title>
+    <meta name="theme-color" content="#193532" />
+    <meta name="description" content="Short, practical outdoor-skills training for Night Ops participants." />
+    <link rel="manifest" href="manifest.webmanifest" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -33,6 +36,7 @@
         <div class="sidebar-foot">
           <a href="#about" class="nav-link" data-route="about"><span>i</span> About Night Ops</a>
           <a href="#settings" class="nav-link" data-route="settings"><span>⚙</span> Account</a>
+          <a href="#privacy" class="nav-link" data-route="privacy"><span>◌</span> Privacy</a>
         </div>
       </aside>
 
@@ -80,7 +84,15 @@
         </section>
 
         <section id="about" class="page simple-page"><div class="eyebrow">THE MISSION</div><h1 class="page-title">Adventure begins with <em>preparation.</em></h1><p class="lede">Night Ops is an overnight, team-based outdoor challenge. Patrols practice navigation, communication, first aid, fire safety, teamwork, and outdoor skills so they can solve challenges calmly after dark.</p><p class="lede">Event times and exact competitions are set by each local Night Ops event, so check your troop’s current event packet. American Heritage Girls is a Christ-centered program that helps girls grow in faith, service, leadership, and a love for God while learning practical outdoor skills.</p><div class="quote">“Be prepared for the moments you can’t plan for.”</div></section>
-        <section id="leader" class="page simple-page"><div class="eyebrow">NIGHT OPS LEADS</div><h1 class="page-title">Night Ops <em>schedule.</em></h1><p class="lede">Sign in to see troop practices, announcements, and questions. Only approved Night Ops leads can publish schedule details or announcements.</p><div class="upcoming-heading"><h2>Upcoming practices</h2><span class="muted">Date · time · location</span></div><div id="leader-schedule" class="leader-schedule"></div><div class="leader-add"><input id="leader-date" type="date" /><input id="leader-time" type="time" /><input id="leader-address" placeholder="Practice address or location" /><input id="leader-training" placeholder="Practice name" /><button class="primary-button" data-add-training>Add <span>+</span></button></div><section class="lead-board"><h2>Announcements from Night Ops leads</h2><div id="announcement-list"></div><textarea id="lead-announcement" placeholder="Write an announcement for the troop."></textarea><button class="primary-button" data-add-announcement>Post announcement <span>→</span></button></section><section class="lead-board question-board"><h2>Questions for the leads</h2><div id="question-list"></div><textarea id="troop-question" placeholder="Ask a question for the next practice."></textarea><button class="outline-button" data-add-question>Ask a question <span>→</span></button></section></section>
+        <section id="privacy" class="page simple-page"><div class="eyebrow">PRIVACY</div><h1 class="page-title">Your progress belongs <em>to you.</em></h1><p class="lede">Night Ops stores your display name, account email, training progress, personal practice notes, and questions you choose to post. Account data is used only to provide the training experience and synchronize it across your devices.</p><p class="lede">Only signed-in members can read troop schedules, announcements, and questions. Approved Night Ops leads can manage shared troop content and member access. Your password is handled by Supabase Authentication and is never visible to Night Ops leads.</p><div class="privacy-actions"><button class="primary-button" data-go="settings">Manage my account <span>→</span></button><p>You can download your data or permanently delete your account from the Account page. A parent or guardian should manage the email for younger members.</p></div></section>
+        <section id="leader" class="page simple-page">
+          <div class="eyebrow">NIGHT OPS LEADS</div><h1 class="page-title">Night Ops <em>schedule.</em></h1><p class="lede">Sign in to see troop practices, announcements, and questions. Only approved Night Ops leads can publish schedule details or announcements.</p>
+          <div class="upcoming-heading"><h2>Upcoming practices</h2><span class="muted">Date · time · location</span></div><div id="leader-schedule" class="leader-schedule"></div>
+          <div class="leader-add"><input id="leader-date" type="date" /><input id="leader-time" type="time" /><input id="leader-address" placeholder="Practice address or location" /><input id="leader-training" placeholder="Practice name" /><button class="primary-button" data-add-training>Add <span>+</span></button></div>
+          <section class="lead-board"><h2>Announcements from Night Ops leads</h2><div id="announcement-list"></div><textarea id="lead-announcement" placeholder="Write an announcement for the troop."></textarea><button class="primary-button" data-add-announcement>Post announcement <span>→</span></button></section>
+          <section class="lead-board question-board"><h2>Questions for the leads</h2><div id="question-list"></div><textarea id="troop-question" placeholder="Ask a question for the next practice."></textarea><button class="outline-button" data-add-question>Ask a question <span>→</span></button></section>
+          <section id="member-admin" class="lead-board member-admin" hidden><h2>Member access</h2><p class="muted">Leads can approve or remove lead access. Members cannot change their own role.</p><div id="member-admin-list"></div></section>
+        </section>
         <section id="access" class="page access-preview" aria-live="polite">
           <div id="access-preview-content"></div>
         </section>
@@ -105,6 +117,7 @@
               <p id="profile-status" class="muted"></p>
               <div id="sync-conflict" class="sync-conflict" hidden><strong>Progress changed on another device</strong><p>Your completed activities were combined safely, but your personal notes differ. Which notes should Night Ops keep?</p><div class="auth-actions"><button class="primary-button" data-sync-keep-local>Keep this device’s notes</button><button class="outline-button" data-sync-keep-remote>Keep saved notes</button></div></div>
               <div class="auth-actions"><button class="primary-button" data-save-account-profile>Save name <span>→</span></button><button class="outline-button" data-export-account>Download my data</button><button class="outline-button" data-auth-sign-out>Sign out</button></div>
+              <details class="danger-zone"><summary>Delete my account</summary><p>This permanently deletes the account and its saved progress. Download your data first if you want a copy.</p><label>Type DELETE to confirm<input id="delete-confirmation" autocomplete="off" /></label><button class="danger-button" data-delete-account>Delete account permanently</button></details>
             </div>
             <p id="auth-status" class="auth-status" aria-live="polite"></p>
           </div>
@@ -114,7 +127,7 @@
     </div>
     <script src="app.js"></script>
     <script src="improvements.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module" src="backend.js?v=20260824-router-core"></script>
+    <script type="module" src="src/core/runtime.js"></script>
   </body>
 </html>

@@ -38,3 +38,19 @@ test('account screen separates sign-in and account creation', async ({ page }) =
   await expect(page.getByLabel('Display name')).toBeVisible();
   await expect(page.getByRole('button', { name: /Create account/ }).last()).toBeVisible();
 });
+
+test('privacy information and account controls stay publicly reachable', async ({ page }) => {
+  await page.goto('/#privacy');
+  await expect(page).toHaveURL(/#privacy$/);
+  await expect(page.getByRole('heading', { name: 'Your progress belongs to you.' })).toBeVisible();
+  await page.getByRole('button', { name: /Manage my account/ }).click();
+  await expect(page).toHaveURL(/#settings$/);
+});
+
+test('install metadata is available', async ({ page, request }) => {
+  await page.goto('/#home');
+  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', /manifest/);
+  const manifest = await request.get('/manifest.webmanifest');
+  expect(manifest.ok()).toBeTruthy();
+  await expect(manifest.json()).resolves.toMatchObject({ name: 'Night Ops Training', display: 'standalone' });
+});

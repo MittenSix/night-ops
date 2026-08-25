@@ -1,4 +1,5 @@
 import { createRouter } from './src/core/router.js';
+import { createClient } from '@supabase/supabase-js';
 import {
   createTrainingStore,
   hasTrainingProgress,
@@ -13,18 +14,7 @@ import {
   const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_rZc-HzAn3UOkELOHKlnStw_4nxsZgh8';
   const SITE_URL = 'https://night-ops.training/#settings';
 
-  if (!window.supabase?.createClient) {
-    console.error('Night Ops account service did not load.');
-    document.body.classList.remove('auth-pending');
-    document.body.classList.add('auth-signed-out');
-    history.replaceState(null, '', '#settings');
-    document.querySelectorAll('.page').forEach(page => page.classList.toggle('active', page.id === 'settings'));
-    const unavailable = document.querySelector('#auth-status');
-    if (unavailable) unavailable.textContent = 'Account service is temporarily unavailable. Please try again shortly.';
-    return;
-  }
-
-  const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  const client = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     auth: {
       persistSession: true,
       autoRefreshToken: true,
@@ -35,6 +25,7 @@ import {
   let session = null;
   let profile = null;
   let sharedData = { announcements: [], events: [], questions: [] };
+  let memberProfiles = [];
   let syncTimer = null;
   let syncInFlight = false;
   let remoteVersion = null;
@@ -162,6 +153,14 @@ import {
       .replaceAll("'", '&#039;');
   }
 
+  function storeLocal(key, value) {
+    try { localStorage.setItem(key, value); } catch { /* Account sync remains authoritative. */ }
+  }
+
+  function removeLocal(key) {
+    try { localStorage.removeItem(key); } catch { /* Nothing else is required. */ }
+  }
+
   function localSnapshot() {
     return trainingStore.getState();
   }
@@ -173,7 +172,7 @@ import {
     state.practice = migrated.practice;
     state.currentLesson = migrated.currentLesson;
     state.reflections = migrated.reflections;
-    localStorage.setItem('nightOpsState', JSON.stringify(state));
+    storeLocal('nightOpsState', JSON.stringify(state));
     refresh();
     if (location.hash === '#skill') {
       const activeSkill = skills.find(skill => state.currentLesson[skill.id] !== undefined);
@@ -258,6 +257,8 @@ import {
     const askButton = document.querySelector('[data-add-question]');
     if (question) question.disabled = !signedInUser;
     if (askButton) askButton.disabled = !signedInUser;
+    const memberAdmin = document.querySelector('#member-admin');
+    if (memberAdmin) memberAdmin.hidden = !isLead;
   }
 
   function renderAccount() {
@@ -270,7 +271,7 @@ import {
     state.profile = authenticated
       ? { name: profile.display_name, role: profile.role }
       : { name: '', role: 'member' };
-    localStorage.setItem('nightOpsProfile', JSON.stringify(state.profile));
+    storeLocal('nightOpsProfile', JSON.stringify(state.profile));
 
     const nameInput = document.querySelector('#profile-name');
     const profileStatus = document.querySelector('#profile-status');
@@ -312,6 +313,26 @@ import {
       questions: questionsResult.data || []
     };
     renderSharedData();
+    await loadMemberProfiles();
+  }
+
+  async function loadMemberProfiles() {
+    const list = document.querySelector('#member-admin-list');
+    if (profile?.role !== 'lead') {
+      memberProfiles = [];
+      if (list) list.innerHTML = '';
+      return;
+    }
+    const { data, error } = await client.from('profiles').select('id,display_name,role,created_at').order('display_name');
+    if (error) return displayError(error, 'Member access could not be loaded.');
+    memberProfiles = data || [];
+    if (list) {
+      list.innerHTML = memberProfiles.map(member => {
+        const nextRole = member.role === 'lead' ? 'member' : 'lead';
+        const action = member.role === 'lead' ? 'Remove lead access' : 'Make lead';
+        return `<div class="member-row"><div><strong>${escapeHtml(member.display_name)}</strong><small>${member.role === 'lead' ? 'Night Ops lead' : 'Troop member'}</small></div><button data-set-member-role="${member.id}|${nextRole}">${action}</button></div>`;
+      }).join('') || '<p class="muted">No members yet.</p>';
+    }
   }
 
   function actionButton(kind, id, ownerId) {
@@ -477,6 +498,38 @@ import {
     setStatus('Your Night Ops data was downloaded.', 'success');
   }
 
+  async function deleteAccount() {
+    const confirmation = document.querySelector('#delete-confirmation')?.value.trim();
+    if (confirmation !== 'DELETE') return setStatus('Type DELETE exactly before deleting the account.', 'error');
+    setStatus('Deleting account…');
+    const { error } = await client.functions.invoke('account-admin', { body: { action: 'delete_self' } });
+    if (error) return displayError(error, 'The account could not be deleted.');
+    await client.auth.signOut({ scope: 'local' });
+    removeLocal('nightOpsState');
+    removeLocal('nightOpsProfile');
+    trainingStore.replace({}, 'account-deleted');
+    route('home');
+    setStatus('Your account and saved progress were deleted.', 'success');
+  }
+
+  async function setMemberRole(value) {
+    if (profile?.role !== 'lead') return setStatus('Lead access is required.', 'error');
+    const [targetId, role] = value.split('|');
+    if (!targetId || !['member', 'lead'].includes(role)) return;
+    setStatus('Updating member access…');
+    const { data, error } = await client.functions.invoke('account-admin', {
+      body: { action: 'set_role', targetId, role }
+    });
+    if (error) return displayError(error, 'Member access could not be updated.');
+    if (targetId === session?.user?.id && data?.profile) {
+      profile = data.profile;
+      renderAccount();
+      setLeaderControls();
+    }
+    await loadMemberProfiles();
+    setStatus('Member access updated.', 'success');
+  }
+
   async function saveDisplayName() {
     const displayName = document.querySelector('#profile-name')?.value.trim();
     if (!session?.user || !displayName) return setStatus('Enter a display name.', 'error');
@@ -584,7 +637,7 @@ import {
   });
 
   document.addEventListener('click', event => {
-    const action = event.target.closest('[data-auth-mode], [data-auth-sign-in], [data-auth-sign-up], [data-auth-sign-out], [data-auth-reset], [data-auth-update-password], [data-save-account-profile], [data-export-account], [data-sync-keep-local], [data-sync-keep-remote]');
+    const action = event.target.closest('[data-auth-mode], [data-auth-sign-in], [data-auth-sign-up], [data-auth-sign-out], [data-auth-reset], [data-auth-update-password], [data-save-account-profile], [data-export-account], [data-delete-account], [data-sync-keep-local], [data-sync-keep-remote]');
     if (!action) return;
     event.preventDefault();
     if (action.matches('[data-auth-mode]')) setAuthMode(action.dataset.authMode);
@@ -595,12 +648,13 @@ import {
     if (action.matches('[data-auth-update-password]')) updateRecoveredPassword();
     if (action.matches('[data-save-account-profile]')) saveDisplayName();
     if (action.matches('[data-export-account]')) exportAccountData();
+    if (action.matches('[data-delete-account]')) deleteAccount();
     if (action.matches('[data-sync-keep-local]')) resolveSyncConflict(true);
     if (action.matches('[data-sync-keep-remote]')) resolveSyncConflict(false);
   });
 
   document.addEventListener('click', event => {
-    const action = event.target.closest('[data-add-announcement], [data-add-question], [data-add-training], [data-backend-delete]');
+    const action = event.target.closest('[data-add-announcement], [data-add-question], [data-add-training], [data-backend-delete], [data-set-member-role]');
     if (!action) return;
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -608,6 +662,7 @@ import {
     if (action.matches('[data-add-question]')) addQuestion();
     if (action.matches('[data-add-training]')) addEvent();
     if (action.dataset.backendDelete) deleteSharedItem(action.dataset.backendDelete);
+    if (action.dataset.setMemberRole) setMemberRole(action.dataset.setMemberRole);
   }, true);
 
   client.auth.onAuthStateChange((event, nextSession) => {

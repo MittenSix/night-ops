@@ -47,9 +47,12 @@ curriculum.navigation=[
   ['Plan, travel, check','ADVANCED','Use a short route plan to travel safely: know where you are, choose a clear destination, use handrails, and check in often.',['With your leader, choose a start, destination, time limit, buddy, and a safe boundary.','Choose a handrail such as a trail, fence, road edge, or stream that helps you stay oriented.','Choose a catching feature beyond the destination, such as a road or trail junction, so you know if you go too far.','Travel to a nearby visible landmark first, then stop and check the map and compass before continuing.','If you are unsure, stop, stay together, and contact your leader—do not keep guessing.']]
 ];
 const packing=['Compass','Flashlight','Extra batteries','Water bottle','First-aid kit','Warm layer','Rain jacket','Whistle'];
-const state=JSON.parse(localStorage.getItem('nightOpsState')||'{"packing":{},"practice":{},"currentLesson":{}}');
+let state;
+try{state=JSON.parse(localStorage.getItem('nightOpsState')||'{"packing":{},"practice":{},"currentLesson":{},"reflections":{}}');}
+catch{state={packing:{},practice:{},currentLesson:{},reflections:{}};try{localStorage.removeItem('nightOpsState');}catch{}}
+state.packing ||= {};state.practice ||= {};state.currentLesson ||= {};state.reflections ||= {};
 state.practice ||= {}; state.currentLesson ||= {};
-function save(){localStorage.setItem('nightOpsState',JSON.stringify(state));}
+function save(){try{localStorage.setItem('nightOpsState',JSON.stringify(state));}catch{}}
 function lessons(skill){return curriculum[skill.id];}
 function completedRounds(skill){return lessons(skill).reduce((total,_,lesson)=>total+Object.keys(state.practice[`${skill.id}-${lesson}`]||{}).length,0);}
 function totalRounds(skill){return lessons(skill).length*3;}
@@ -108,12 +111,12 @@ lessonArt=id=>{
     'Bowline':['assets/bowline.jpg','Bowline · U.S. Coast Guard photo · CC BY-SA 4.0'],
     'Timber hitch':['assets/timber-hitch.jpg','Timber hitch · Anup Sadi · CC BY-SA 4.0']
   };
-  if(photos[title])return `<figure class="field-photo"><img src="${photos[title][0]}" alt="Real-life ${title}"><figcaption>${photos[title][1]}</figcaption></figure>`;
+  if(photos[title])return `<figure class="field-photo"><img src="${photos[title][0]}" alt="Real-life ${title}" loading="lazy" decoding="async"><figcaption>${photos[title][1]}</figcaption></figure>`;
   const art=knots[title]||lashings[title]||knots['Square knot'];
   return `<svg viewBox="0 0 240 160" aria-label="${title} tying diagram">${art}</svg>`;
 };
 document.addEventListener('click',e=>{const target=e.target.closest('[data-round]');if(!target)return;const [id,lesson]=target.dataset.round.split('|');setTimeout(()=>{if(Number(lesson)===curriculum[id].length-1&&Object.keys(state.practice[`${id}-${lesson}`]||{}).length===3)celebrate();},0);});
-window.addEventListener('hashchange',()=>route(location.hash.slice(1)||'home'));refresh();route(location.hash.slice(1)||'home');
+refresh();route(location.hash.slice(1)||'home');
 
 const baseShowSkill=showSkill;
 function navigationChallenge(index){
@@ -191,7 +194,7 @@ curriculum['first-aid'].splice(11,6,
   ['Cold and wet','ADVANCED','At night, wet clothes and cold wind can make someone dangerously cold.',['Move to shelter, take off wet layers, dry off, and put on warm dry layers.','Use blankets and warm slowly; do not rub cold skin or use very hot water.','If they are awake and can swallow, offer a warm non-caffeinated drink with an adult’s help.','Call 911 for confusion, very slow breathing, passing out, or worsening symptoms.','Stay with them and keep watching how they feel.']]
 );
 packing.splice(0,packing.length,'Backpack or day pack','Water bottle','Flashlight or headlamp','Extra batteries','Whistle','Rain jacket or poncho','Warm layer','Small first-aid kit','Compass','Map or route sheet','Snacks','Bug spray or sunscreen','Personal medicines with leader instructions','Health form / troop paperwork');
-lessonArt=function(id){if(id==='navigation'||id==='first-aid')return '';if(id==='fire')return `<figure class="fire-photo"><img src="assets/fire-safety-overhead.png" alt="Top-down view of a safe campfire ring with a clear bare area around it"><figcaption>Clear fire circle</figcaption></figure>`;if(id==='morse'){const index=Math.min(state.currentLesson.morse||0,curriculum.morse.length-1),letter=curriculum.morse[index][0].replace('Letter ','');return morseAlphabet[letter]?`<div class="morse-letter-card"><b>${letter}</b><span>${morseAlphabet[letter].replaceAll('.', '·').replaceAll('-', '—')}</span><small>LETTER ${letter}</small></div>`:`<div class="morse-letter-card"><b>· —</b><span>DOTS &amp; DASHES</span><small>THE MORSE ALPHABET</small></div>`;}return lessonArtWithMorse(id);};
+lessonArt=function(id){if(id==='navigation'||id==='first-aid')return '';if(id==='fire')return `<figure class="fire-photo"><img src="assets/fire-safety-overhead.png" alt="Top-down view of a safe campfire ring with a clear bare area around it" loading="lazy" decoding="async"><figcaption>Clear fire circle</figcaption></figure>`;if(id==='morse'){const index=Math.min(state.currentLesson.morse||0,curriculum.morse.length-1),letter=curriculum.morse[index][0].replace('Letter ','');return morseAlphabet[letter]?`<div class="morse-letter-card"><b>${letter}</b><span>${morseAlphabet[letter].replaceAll('.', '·').replaceAll('-', '—')}</span><small>LETTER ${letter}</small></div>`:`<div class="morse-letter-card"><b>· —</b><span>DOTS &amp; DASHES</span><small>THE MORSE ALPHABET</small></div>`;}return lessonArtWithMorse(id);};
 const originalRefresh=refresh;
 function renderExtras(){const rounds=skills.reduce((n,skill)=>n+completedRounds(skill),0);const board=document.querySelector('#leaderboard-list');if(board)board.innerHTML=`<div class="leader-row you"><b>1</b><span>You</span><strong>${rounds} skills</strong></div>`;document.querySelectorAll('[data-reflection]').forEach(input=>input.value=(state.reflections||{})[input.dataset.reflection]||'');}
 refresh=function(){originalRefresh();renderExtras();};

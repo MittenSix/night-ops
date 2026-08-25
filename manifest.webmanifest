@@ -1,0 +1,12 @@
+{
+  "name": "Night Ops Training",
+  "short_name": "Night Ops",
+  "description": "Outdoor-skills practice and progress tracking.",
+  "start_url": "./#home",
+  "display": "standalone",
+  "background_color": "#fffaf1",
+  "theme_color": "#193532",
+  "icons": [
+    { "src": "assets/app-icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

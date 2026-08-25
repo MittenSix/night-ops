@@ -14,6 +14,7 @@ test('keeps public pages available to signed-out visitors', () => {
     requested: 'home', rendered: 'home', preview: false, intended: null
   });
   assert.equal(resolveRoute('about', false).rendered, 'about');
+  assert.equal(resolveRoute('privacy', false).rendered, 'privacy');
   assert.equal(resolveRoute('settings', false).rendered, 'settings');
 });
 

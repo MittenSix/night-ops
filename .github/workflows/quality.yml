@@ -25,3 +25,14 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm run check
       - run: pnpm run test:e2e
+
+  database-security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - run: supabase db start
+      - run: supabase test db
